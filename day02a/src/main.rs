@@ -11,14 +11,14 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Subset {
     green: u32,
     blue: u32,
     red: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Game {
     id: u32,
     subsets: Vec<Subset>,
@@ -77,11 +77,43 @@ fn filter_impossible(game: &Game) -> bool {
     }
     return is_possible;
 }
+
+fn get_game_power(game: Game) -> u32 {
+    let max_red = game
+        .subsets
+        .clone()
+        .into_iter()
+        .map(|subset| subset.red)
+        .max()
+        .unwrap();
+    let max_green = game
+        .subsets
+        .clone()
+        .into_iter()
+        .map(|subset| subset.green)
+        .max()
+        .unwrap();
+    let max_blue = game
+        .subsets
+        .into_iter()
+        .map(|subset| subset.blue)
+        .max()
+        .unwrap();
+    let power = max_red * max_green * max_blue;
+    return power;
+}
 fn main() {
     let input = read_lines("input.txt").unwrap();
     let col: Vec<_> = input.map(|line| build_game(line.unwrap())).collect();
-    println!("{:?}", col);
-    let result_games = col.into_iter().filter(|game| filter_impossible(game));
-    let solution: u32 = result_games.into_iter().map(|game| game.id).sum();
-    println!("{:?}", solution);
+    let result_games = col
+        .clone()
+        .into_iter()
+        .filter(|game| filter_impossible(game));
+    let solution: u32 = result_games.clone().into_iter().map(|game| game.id).sum();
+    let solution2: u32 = col
+        .clone()
+        .into_iter()
+        .map(|game| get_game_power(game))
+        .sum();
+    println!("solution A: {:?}, solution B: {:?}", solution, solution2);
 }
