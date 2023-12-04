@@ -1,54 +1,67 @@
-use std::collections::HashSet;
+use std::{
+    char,
+    collections::{HashMap, HashSet},
+};
+
+macro_rules! regex {
+    ($raw:expr) => {{
+        static REGEX: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
+        REGEX.get_or_init(|| regex::Regex::new($raw).unwrap())
+    }};
+}
 
 #[derive(Hash, Eq, PartialEq, Debug)]
 struct Number {
     value: u32,
-    start_index: usize,
-    row: usize,
-    length: usize,
-    checked: bool,
+    part_number: bool,
 }
 
-fn get_all_numbers(input: &str) -> HashSet<Number> {
-    let mut numbers: HashSet<Number> = HashSet::new();
+fn parse_input(input: &str) -> (Vec<Number>, HashMap<Vec<usize>, Vec<u32>>) {
+    let mut symbols = HashMap::new();
     for (y, line) in input.lines().enumerate() {
-        let mut start_index = None;
-        let mut end_index = 0;
-        for (x, c) in line.chars().enumerate() {
-            if c.is_ascii_digit() {
-                start_index.get_or_insert(x);
-                end_index = x;
-            } else if let Some(start) = start_index.take() {
-                let value = line[start..=end_index].to_string();
-                let value_casted = value.parse::<u32>().unwrap();
-                let number = Number {
-                    value: value_casted,
-                    start_index: start,
-                    row: y,
-                    length: value.chars().count(),
-                    checked: false,
-                };
-                numbers.insert(number);
+        for (x, c) in line.char_indices() {
+            if !c.is_ascii_digit() && c != '.' {
+                symbols.insert(vec![x, y], c);
             }
         }
-        if let Some(start) = start_index.take() {
-            let value = line[start..=end_index].to_string();
-            let value_casted = value.parse::<u32>().unwrap();
-            let number = Number {
-                value: value_casted,
-                start_index: start,
-                row: y,
-                length: value.chars().count(),
-                checked: false,
-            };
-            numbers.insert(number);
+    }
+    let mut numbers = Vec::new();
+    let mut ratios = HashMap::new();
+    for (y, line) in input.lines().enumerate() {
+        for val in regex!(r"\d+").find_iter(line) {
+            let value: u32 = val.as_str().parse().unwrap();
+            let mut part_number = false;
+            for nx in val.start().saturating_sub(1)..=val.end() {
+                for ny in y.saturating_sub(1)..=y + 1 {
+                    let pos = vec![nx, ny];
+                    let symbol = symbols.get(&pos);
+                    part_number |= symbol.is_some();
+
+                    if symbol == Some(&'*') {
+                        ratios.entry(pos).or_insert(Vec::new()).push(value);
+                    }
+                }
+            }
+            numbers.push(Number { value, part_number });
         }
     }
-    numbers
+    (numbers, ratios)
 }
-
 fn main() {
-    let input = include_str!("../test.txt");
-    let numbers = get_all_numbers(input);
-    println!("{:?}", numbers);
+    let input = include_str!("../input.txt");
+    let parsed = parse_input(input);
+    let part_a = parsed
+        .0
+        .into_iter()
+        .filter(|x| x.part_number)
+        .map(|x| x.value)
+        .sum::<u32>();
+    println!("{:?}", part_a);
+    let part_b: u32 = parsed
+        .1
+        .into_iter()
+        .filter(|(_, x)| x.len() == 2)
+        .map(|(_, vals)| vals[0] * vals[1])
+        .sum();
+    println!("{:?}", part_b);
 }
