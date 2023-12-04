@@ -1,13 +1,13 @@
 use std::collections::HashSet;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Card {
     id: u32,
     winning_numbers: HashSet<u32>,
     my_numbers: HashSet<u32>,
 }
 
-fn parse_input(input: &str) {
+fn parse_input(input: &str) -> Vec<Card> {
     let result: Vec<_> = input
         .lines()
         .map(|line| line.split(':').collect::<Vec<_>>())
@@ -35,10 +35,22 @@ fn parse_input(input: &str) {
             };
         })
         .collect();
-    println!("{:?}", result);
+    return result;
 }
 
 fn main() {
-    let input = include_str!("../test.txt");
-    parse_input(input);
+    let input = include_str!("../input.txt");
+    let parsed_input = parse_input(input);
+    let solution_a: &u32 = &parsed_input
+        .into_iter()
+        .map(|card| {
+            card.clone()
+                .my_numbers
+                .intersection(&card.clone().winning_numbers)
+                .count()
+        })
+        .filter(|x| x > &0)
+        .map(|inter_count| u32::pow(2, (inter_count as u32) - 1))
+        .sum();
+    println!("{:?}", solution_a);
 }
