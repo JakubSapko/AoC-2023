@@ -1,22 +1,35 @@
 #[derive(Debug)]
 struct Range {
-    destination: u32,
-    source: u32,
-    steps: u32,
+    destination: u64,
+    source: u64,
+    steps: u64,
 }
 
 #[derive(Debug)]
 struct Map {
     ranges: Vec<Range>,
 }
-fn parse_input(input: &str) -> (Vec<Map>, Vec<u32>) {
+
+impl Map {
+    fn get(&self, val: &u64) -> u64 {
+        for range in &self.ranges {
+            if val >= &range.source && val <= &(range.source + range.steps) {
+                println!("{} + {} - {}", range.destination, val, range.source);
+                return range.destination + val - range.source;
+            }
+        }
+        *val
+    }
+}
+
+fn parse_input(input: &str) -> (Vec<Map>, Vec<u64>) {
     let mut sections = input.split("\n\n");
-    let seeds: Vec<u32> = sections
+    let seeds: Vec<u64> = sections
         .next()
         .unwrap()
         .split_whitespace()
         .skip(1)
-        .map(|seed| seed.parse::<u32>().unwrap())
+        .map(|seed| seed.parse::<u64>().unwrap())
         .collect();
     let mut maps = Vec::new();
     for section in sections.filter(|sec| !sec.is_empty()) {
@@ -24,9 +37,9 @@ fn parse_input(input: &str) -> (Vec<Map>, Vec<u32>) {
         let mut ranges = Vec::new();
         for line in lines.skip(1) {
             let data = line.split_whitespace().collect::<Vec<&str>>();
-            let destination = data[0].parse::<u32>().unwrap();
-            let source = data[1].parse::<u32>().unwrap();
-            let steps = data[2].parse::<u32>().unwrap();
+            let destination = data[0].parse::<u64>().unwrap();
+            let source = data[1].parse::<u64>().unwrap();
+            let steps = data[2].parse::<u64>().unwrap();
             ranges.push(Range {
                 destination,
                 source,
@@ -38,20 +51,21 @@ fn parse_input(input: &str) -> (Vec<Map>, Vec<u32>) {
     return (maps, seeds);
 }
 
-fn solve_a(seeds: &Vec<u32>, maps: &Vec<Map>) -> u32 {
-    let min = u32::MAX;
+fn solve_a(seeds: Vec<u64>, maps: Vec<Map>) -> u64 {
+    let mut min = u64::MAX;
     for mut seed in seeds {
-        for map in maps {
-            seed = map.get(seed);
+        for map in &maps {
+            seed = map.get(&seed);
         }
-        min = min.min(&seed);
+        min = min.min(seed);
     }
     return min;
 }
 fn main() {
-    let input = include_str!("../test.txt");
+    let input = include_str!("../input.txt");
     let (maps, seeds) = parse_input(input);
     println!("{:?}", seeds);
     println!("{:?}", maps);
-    let result = solve_a(&seeds, &maps);
+    let result = solve_a(seeds, maps);
+    println!("{:?}", result);
 }
