@@ -42,6 +42,7 @@ fn main() {
     let input = include_str!("../input.txt");
     let parsed_input = parse_input(input);
     let solution_a: &u32 = &parsed_input
+        .clone()
         .into_iter()
         .map(|card| {
             card.clone()
@@ -52,5 +53,30 @@ fn main() {
         .filter(|x| x > &0)
         .map(|inter_count| u32::pow(2, (inter_count as u32) - 1))
         .sum();
+    let games_won: &Vec<usize> = &parsed_input
+        .clone()
+        .into_iter()
+        .map(|card| {
+            card.clone()
+                .my_numbers
+                .intersection(&card.clone().winning_numbers)
+                .count()
+        })
+        .collect::<Vec<usize>>();
+    println!("{:?}", games_won);
+    let mut times_played = (0..games_won.len()).collect::<Vec<_>>();
+    let mut visited = 0;
+    while let Some(i) = times_played.pop() {
+        visited += 1;
+        let card = games_won[i];
+        if card == 0 as usize {
+            continue;
+        }
+        for j in 0..card as usize {
+            times_played.push(j + i + 1);
+        }
+    }
+    println!("{:?}", visited);
+
     println!("{:?}", solution_a);
 }
