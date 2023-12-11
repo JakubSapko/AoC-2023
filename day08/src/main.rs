@@ -58,10 +58,72 @@ fn solve_a(map: Map) -> usize {
     return instructions_index;
 }
 
+fn gcd(mut a: u64, mut b: u64) -> u64 {
+    while b != 0 {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    a
+}
+
+fn lcm(a: u64, b: u64) -> u64 {
+    if a == 0 || b == 0 {
+        return 0;
+    }
+    (a * b) / gcd(a, b)
+}
+
+fn lcm_of_vector(numbers: &[u64]) -> u64 {
+    if numbers.is_empty() {
+        return 0;
+    }
+
+    let mut result = numbers[0];
+
+    for &num in &numbers[1..] {
+        result = lcm(result, num);
+    }
+
+    result
+}
+
+fn solve_b(map: Map) -> u64 {
+    let mut nodes = vec![];
+    for (root, _) in &map.nodes {
+        if root.ends_with("A") {
+            nodes.push(root.to_owned());
+        }
+    }
+    println!("{}, {:?}", nodes.len(), nodes);
+    let mut instructions_index = 0;
+    let mut nodes_counts = Vec::new();
+
+    for mut node in nodes {
+        loop {
+            let (left, right) = map.nodes.get(&node).unwrap();
+            node = match map.instructions[instructions_index % map.instructions.len()] {
+                Directions::LEFT => left.to_owned(),
+                Directions::RIGHT => right.to_owned(),
+            };
+            instructions_index += 1;
+            if node.ends_with('Z') {
+                nodes_counts.push(instructions_index as u64);
+                println!("done {:?}, {:?}, ", node, instructions_index,);
+                instructions_index = 0;
+                break;
+            }
+        }
+    }
+    println!("{:?}", nodes_counts);
+
+    return lcm_of_vector(&nodes_counts);
+}
 fn main() {
     let input = include_str!("../input.txt");
     let map = parse(input);
-    println!("{:?}", map);
-    let result = solve_a(map);
+    //    let result = solve_a(map);
+    //    println!("{:?}", result);
+    let result = solve_b(map);
     println!("{:?}", result);
 }

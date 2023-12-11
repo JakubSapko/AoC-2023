@@ -1,7 +1,4 @@
-use std::{
-    char,
-    collections::{HashMap, HashSet},
-};
+use std::collections::HashMap;
 
 macro_rules! regex {
     ($raw:expr) => {{
@@ -48,7 +45,7 @@ fn parse_input(input: &str) -> (Vec<Number>, HashMap<Vec<usize>, Vec<u32>>) {
     (numbers, ratios)
 }
 fn main() {
-    let input = include_str!("../input.txt");
+    let input = include_str!("../domin_input.txt");
     let parsed = parse_input(input);
     let part_a = parsed
         .0

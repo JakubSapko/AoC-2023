@@ -14,7 +14,6 @@ impl Map {
     fn get(&self, val: &u64) -> u64 {
         for range in &self.ranges {
             if val >= &range.source && val <= &(range.source + range.steps) {
-                println!("{} + {} - {}", range.destination, val, range.source);
                 return range.destination + val - range.source;
             }
         }
@@ -61,11 +60,29 @@ fn solve_a(seeds: Vec<u64>, maps: Vec<Map>) -> u64 {
     }
     return min;
 }
+
+fn solve_b(seeds: Vec<u64>, maps: Vec<Map>) -> u64 {
+    let result = seeds
+        .chunks(2)
+        .map(|chunk| (chunk[0], chunk[1]))
+        .map(|seed| {
+            let mut min = u64::MAX;
+            for mut seed in seed.0..=seed.0 + seed.1 {
+                for map in &maps {
+                    seed = map.get(&seed);
+                }
+                min = min.min(seed);
+            }
+            return min;
+        })
+        .min()
+        .unwrap();
+    return result;
+}
 fn main() {
     let input = include_str!("../input.txt");
     let (maps, seeds) = parse_input(input);
-    println!("{:?}", seeds);
-    println!("{:?}", maps);
-    let result = solve_a(seeds, maps);
+    //let result = solve_a(seeds, maps);
+    let result = solve_b(seeds, maps);
     println!("{:?}", result);
 }
